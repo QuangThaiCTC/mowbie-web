@@ -6,24 +6,11 @@ const Auth = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Hàm lấy avatar từ server (Base64) và lưu vào localStorage
-  const fetchAvatar = async (avatarPath) => {
-    if (!avatarPath) return; // Nếu không có avatarPath, không gọi API
-
-    try {
-      const response = await axios.get(
-        "http://192.168.10.1:8081/api/users/avatar",
-        {
-          params: { avatarPath },
-        }
-      );
-
-      if (response.data.image) {
-        localStorage.setItem("avatar", response.data.image);
-      }
-    } catch (error) {
-      console.error("Lỗi lấy avatar:", error);
+  const getAvatarUrl = (avatarPath) => {
+    if (!avatarPath) {
+      return "http://192.168.10.1:8081/uploads/users/default.png";
     }
+    return `http://192.168.10.1:8081/api/${avatarPath}`;
   };
 
   useEffect(() => {
@@ -38,7 +25,8 @@ const Auth = () => {
         if (response.status === 200) {
           localStorage.setItem("access_token", response.data.data.access_token);
           localStorage.setItem("user", JSON.stringify(response.data.data.user));
-          await fetchAvatar(response.data.data.user.avatarPath);
+          const avatarUrl = getAvatarUrl(response.data.data.user.avatarPath);
+          localStorage.setItem("avatar", avatarUrl);
           navigate(
             response.data.data.user.userRole === "manager"
               ? "/dashboard"

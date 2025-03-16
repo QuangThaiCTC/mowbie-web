@@ -14,24 +14,11 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Hàm lấy avatar từ server (Base64) và lưu vào localStorage
-  const fetchAvatar = async (avatarPath) => {
-    if (!avatarPath) return; // Nếu không có avatarPath, không gọi API
-
-    try {
-      const response = await axios.get(
-        "http://192.168.10.1:8081/api/users/avatar",
-        {
-          params: { avatarPath },
-        }
-      );
-
-      if (response.data.image) {
-        localStorage.setItem("avatar", response.data.image);
-      }
-    } catch (error) {
-      console.error("Lỗi lấy avatar:", error);
+  const getAvatarUrl = (avatarPath) => {
+    if (!avatarPath) {
+      return "http://192.168.10.1:8081/uploads/users/default.png";
     }
+    return `http://192.168.10.1:8081/api/${avatarPath}`;
   };
 
   const handleLogin = async () => {
@@ -59,8 +46,8 @@ const Login = () => {
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // Gọi API lấy avatar nếu có
-        await fetchAvatar(user.avatarPath);
+        const avatarUrl = getAvatarUrl(response.data.data.user.avatarPath);
+        localStorage.setItem("avatar", avatarUrl);
 
         // Điều hướng theo vai trò user
         navigate(user.userRole === "manager" ? "/dashboard" : "/home");

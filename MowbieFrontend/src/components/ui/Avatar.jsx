@@ -20,7 +20,12 @@ const Avatar = () => {
         <summary className="btn btn-ghost btn-circle avatar">
           <div className="w-8 h-8 rounded-full bg-base-300 flex items-center justify-center">
             <img
-              src={avatar || setAvatar("/src/assets/avatar.png")}
+              src={
+                avatar ||
+                setAvatar(
+                  "http://192.168.10.1:8081/api/uploads/users/default.png"
+                )
+              }
               alt="Avatar"
             />
           </div>

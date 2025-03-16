@@ -1,7 +1,6 @@
 import SideBar from "../../components/layout/manager/SideBar";
 import NavbarManager from "../../components/layout/manager/NavbarManager";
 import { Outlet } from "react-router-dom";
-import UserList from "../../components/layout/manager/UserList";
 
 const ManagerDashboard = () => {
   return (
@@ -10,12 +9,12 @@ const ManagerDashboard = () => {
       <SideBar />
 
       {/* Phần bên phải chứa Navbar + Nội dung */}
-      <div className="flex min-w-screen">
+      <div>
         {/* Navbar cố định phía trên */}
         <NavbarManager />
 
         {/* Nội dung động sẽ hiển thị ở đây */}
-        <div className="rounded-lg p-5 overflow-auto flex-1">
+        <div>
           <Outlet />
         </div>
       </div>

@@ -105,7 +105,12 @@ const Profile = () => {
                 <div className="avatar">
                   <div className="ring-primary ring-offset-base-100 w-24 rounded-full ring ring-offset-2">
                     <img
-                      src={avatar || setAvatar("/src/assets/avatar.png")}
+                      src={
+                        avatar ||
+                        setAvatar(
+                          "http://192.168.10.1:8081/api/uploads/users/default.png"
+                        )
+                      }
                       alt="Avatar"
                     />
                     <span className="badge badge-xs badge-dash indicator-item">

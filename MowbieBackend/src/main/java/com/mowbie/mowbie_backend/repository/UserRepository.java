@@ -6,7 +6,9 @@ import com.mowbie.mowbie_backend.security.Regex;
 import com.mowbie.mowbie_backend.security.SecurityInfo;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class UserRepository {
@@ -168,6 +170,30 @@ public class UserRepository {
         } catch (SQLException e){
             System.out.println("\n\n\n\n\n\n" + e.getMessage());
             return 2;
+        }
+    }
+
+    public static List<UserDTO> getAllUsers() {
+        List<UserDTO> users = new ArrayList<>();
+        try (Connection conn = Database.getConnection()){
+            String sql = "SELECT * FROM tb_users";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()){
+                users.add(new UserDTO(
+                        rs.getLong("user_id"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("phone_number"),
+                        rs.getString("avatar_path"),
+                        rs.getBoolean("is_active"),
+                        rs.getString("user_role")
+                ));
+            }
+            return users;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return users;
         }
     }
 }

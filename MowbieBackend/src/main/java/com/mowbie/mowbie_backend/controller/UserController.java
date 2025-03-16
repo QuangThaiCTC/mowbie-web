@@ -31,27 +31,16 @@ import java.util.stream.Collectors;
 public class UserController {
     private static final String UPLOAD_DIR = "uploads/users/";
 
-    @GetMapping("/avatar")
-    public ResponseEntity<?> getUserAvatar(@RequestParam String avatarPath) {
-        try {
-            // Đường dẫn đầy đủ đến avatar
-            Path avatarFullPath = Paths.get( avatarPath);
-
-            if (!Files.exists(avatarFullPath)) {
-                // Nếu không có ảnh, trả về ảnh mặc định
-                avatarFullPath = Paths.get(UPLOAD_DIR, "default.jpg");
-            }
-
-            // Đọc file ảnh thành byte array
-            byte[] imageBytes = Files.readAllBytes(avatarFullPath);
-
-            // Chuyển đổi byte array thành Base64
-            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-
-            return ResponseEntity.ok().body(Map.of("image", "data:image/jpeg;base64," + base64Image));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Không thể lấy ảnh"));
+    @GetMapping
+    public ResponseEntity<?> getAllUsers() {
+        List<UserDTO> users = UserRepository.getAllUsers();
+        if (users.isEmpty()) {
+            return ResponseEntity.status(401)
+                    .body(ResponseDTO.error(401, "USERS_NOT_FOUND", "Danh sách trống!"));
         }
+        return ResponseEntity.ok(ResponseDTO.success("Danh sách người dùng", Map.of(
+                 "users", users
+        )));
     }
 
     @PutMapping("/update")
@@ -67,9 +56,8 @@ public class UserController {
         // Kiểm tra nếu có file avatar mới được tải lên
         if (avatar != null && !avatar.isEmpty()) {
             try {
-                String uploadDir = "uploads/users/";
                 String fileName = avatar.getOriginalFilename();
-                Path filePath = Paths.get(uploadDir, fileName);
+                Path filePath = Paths.get(UPLOAD_DIR, fileName);
 
                 // Đảm bảo thư mục tồn tại
                 Files.createDirectories(filePath.getParent());
