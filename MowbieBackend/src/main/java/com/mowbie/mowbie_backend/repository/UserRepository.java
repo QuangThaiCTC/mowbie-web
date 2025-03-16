@@ -1,64 +1,16 @@
 package com.mowbie.mowbie_backend.repository;
 
 import com.mowbie.mowbie_backend.config.Database;
-import com.mowbie.mowbie_backend.model.User;
+import com.mowbie.mowbie_backend.dto.UserDTO;
+import com.mowbie.mowbie_backend.security.Regex;
 import com.mowbie.mowbie_backend.security.SecurityInfo;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserRepository {
-
-    public static List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        try (Connection conn = Database.getConnection()) {
-            String sql = "SELECT user_id, username, email, phone_number, password, user_role FROM tb_users";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                users.add(new User(
-                        rs.getLong("user_id"),
-                        rs.getString("username"),
-                        rs.getString("email"),
-                        rs.getString("phone_number"),
-                        rs.getString("password"),
-                        rs.getString("user_role")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
-    }
-
-    public static Optional<User> getUserByIdOrEmail(Long userId, String email) {
-        try (Connection conn = Database.getConnection()) {
-            String sql = "SELECT user_id, username, email, phone_number, password, user_role FROM tb_users WHERE user_id = ? OR email = ?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setObject(1, userId);
-            ps.setObject(2, email);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return Optional.of(new User(
-                        rs.getLong("user_id"),
-                        rs.getString("username"),
-                        rs.getString("email"),
-                        rs.getString("phone_number"),
-                        rs.getString("password"),
-                        rs.getString("user_role")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
-    }
-
-    public static int createUser(String username, String email, String phoneNumber, String password) {
+    public static int register(String username, String email, String phoneNumber, String password) {
         try (Connection conn = Database.getConnection()) {
             // Kiểm tra email tồn tại
             String checkUserSql = "SELECT 1 FROM tb_users WHERE email = ?";
@@ -86,66 +38,136 @@ public class UserRepository {
 
             return 1; // Tạo tài khoản thành công
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
             return 2; // Lỗi hệ thống
         }
     }
 
-    public static int updateUser(Long userId, String username, String phoneNumber, String password) {
-        try (Connection conn = Database.getConnection()) {
-            // Tạo StringBuilder để xây dựng câu lệnh UPDATE động
-            StringBuilder sqlBuilder = new StringBuilder("UPDATE tb_users SET ");
-            List<Object> params = new ArrayList<>();
-
-            if (username != null && !username.isEmpty()) {
-                sqlBuilder.append("username = ?, ");
-                params.add(username);
+    public static UserDTO login(String email, String password) {
+        try (Connection conn = Database.getConnection()){
+            String checkUserSql = "SELECT * FROM tb_users WHERE email = ?";
+            PreparedStatement checkUserPs = conn.prepareStatement(checkUserSql);
+            checkUserPs.setString(1, email);
+            ResultSet rs = checkUserPs.executeQuery();
+            if (rs.next() && SecurityInfo.verifyPassword(password, rs.getString("password"))){
+                return new UserDTO(
+                        rs.getLong("user_id"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("phone_number"),
+                        rs.getString("avatar_path"),
+                        rs.getBoolean("is_active"),
+                        rs.getString("user_role")
+                );
             }
-            if (phoneNumber != null && !phoneNumber.isEmpty()) {
-                sqlBuilder.append("phone_number = ?, ");
-                params.add(phoneNumber);
-            }
-            if (password != null && !password.isEmpty()) {
-                sqlBuilder.append("password = ?, ");
-                params.add(SecurityInfo.hashString(password)); // Hash mật khẩu trước khi cập nhật
-            }
-
-            // Kiểm tra xem có dữ liệu để cập nhật không
-            if (params.isEmpty()) {
-                return 0; // Không có gì để cập nhật
-            }
-
-            // Xóa dấu ", " cuối cùng và thêm điều kiện WHERE
-            sqlBuilder.setLength(sqlBuilder.length() - 2);
-            sqlBuilder.append(" WHERE user_id = ?");
-            params.add(userId);
-
-            // Chuẩn bị câu lệnh SQL
-            PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString());
-
-            // Gán giá trị vào câu lệnh SQL
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            return ps.executeUpdate();
+            return null;
         } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return null;
         }
     }
 
-    public static int deleteUser(Long userId) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "DELETE FROM tb_users WHERE user_id = ?";
+    public static UserDTO getUserByEmailOrId(String email, Long userId) {
+        try (Connection conn = Database.getConnection()){
+            String sqlQuery = "SELECT * FROM tb_users WHERE email = ? or user_id = ?";
             PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setLong(1, userId);
-            int affectedRows = ps.executeUpdate();
+            // Nếu email null, set NULL cho PreparedStatement
+            if (email != null) {
+                ps.setString(1, email);
+            } else {
+                ps.setNull(1, Types.VARCHAR);
+            }
 
-            return affectedRows > 0 ? 1 : 0;
+            // Nếu userId null, set NULL cho PreparedStatement
+            if (userId != null) {
+                ps.setLong(2, userId);
+            } else {
+                ps.setNull(2, Types.BIGINT);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()){
+                return new UserDTO(
+                        rs.getLong("user_id"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("phone_number"),
+                        rs.getString("avatar_path"),
+                        rs.getBoolean("is_active"),
+                        rs.getString("user_role")
+                );
+            }
+            return null;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return null;
+        }
+    }
+
+    public static UserDTO updateProfile(Long userId, String username, String phoneNumber, String newPassword, String avatarPath) {
+        Map<String, String> fields = new HashMap<>();
+
+        if (username != null && !username.isEmpty()) fields.put("username", username);
+        if (phoneNumber != null && !phoneNumber.isEmpty() && Regex.isValidPhoneNumber(phoneNumber)) fields.put("phone_number", phoneNumber);
+        if (newPassword != null && !newPassword.isEmpty() && Regex.isValidPassword(newPassword)) fields.put("password", SecurityInfo.hashString(newPassword));
+        if (avatarPath != null && !avatarPath.isEmpty()) fields.put("avatar_path", avatarPath);
+        if (fields.isEmpty()) {
+            System.out.println("Không có trường nào cần cập nhật!");
+            return null;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE tb_users SET ");
+        int count = 0;
+        for (String key : fields.keySet()) {
+            sql.append(key).append(" = ?");
+            count++;
+            if (count < fields.size()) sql.append(", ");
+        }
+        sql.append(" WHERE user_id = ?");
+        try (Connection conn = Database.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+            int index = 1;
+            for (String value : fields.values()) {
+                ps.setString(index++, value);
+                System.out.println(value);
+            }
+            ps.setLong(index, userId);
+
+            ps.executeUpdate();
+            String sqlQuery = "SELECT * FROM tb_users WHERE user_id = ?";
+            ps = conn.prepareStatement(sqlQuery);
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new UserDTO(
+                        rs.getLong("user_id"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("phone_number"),
+                        rs.getString("avatar_path"),
+                        rs.getBoolean("is_active"),
+                        rs.getString("user_role")
+                );
+            }
+            return null;
         } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            System.out.println("Lỗi khi cập nhật user: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+    public static int updateUserStatusById(Long userId, Boolean active) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "UPDATE tb_users SET is_active = ? WHERE user_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setBoolean(1, active);
+            ps.setLong(2, userId);
+            ps.executeUpdate();
+            return active ? 1 : 0;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return 2;
         }
     }
 }

@@ -1,0 +1,152 @@
+1. Bảng chính
+1.1. tb_users (Quản lý tài khoản)
+
+    Chứa thông tin tài khoản của Customer và Admin.
+    Phân quyền user bằng role (CUSTOMER, ADMIN).
+    Hỗ trợ đăng ký, đăng nhập, cập nhật thông tin.
+
+1.2. tb_roles (Quản lý quyền)
+
+    Chứa danh sách quyền: CUSTOMER, ADMIN.
+    Dùng để quản lý role của user.
+
+1.3. tb_products (Quản lý sản phẩm)
+
+    Lưu thông tin sản phẩm như tên, giá, mô tả, số lượng, danh mục,...
+    Cho phép Admin thêm/sửa/xóa sản phẩm.
+    Customer có thể xem danh sách sản phẩm.
+
+1.4. tb_categories (Quản lý danh mục)
+
+    Phân loại sản phẩm theo danh mục (Smartphone, Tablet,...).
+    Admin có thể thêm/sửa/xóa danh mục.
+
+1.5. tb_cart (Giỏ hàng)
+
+    Customer có thể thêm/xóa sản phẩm vào giỏ hàng.
+    Lưu trạng thái giỏ hàng trước khi đặt hàng.
+
+1.6. tb_orders (Quản lý đơn hàng)
+
+    Lưu thông tin đơn hàng khi Customer đặt hàng.
+    Admin có thể xem danh sách đơn hàng, cập nhật trạng thái đơn hàng.
+
+1.7. tb_order_items (Chi tiết đơn hàng)
+
+    Lưu chi tiết từng sản phẩm trong đơn hàng.
+    Liên kết với tb_orders và tb_products.
+
+1.8. tb_payments (Thanh toán)
+
+    Lưu thông tin thanh toán của đơn hàng (chuyển khoản, COD, ví điện tử,...).
+    Admin có thể kiểm tra trạng thái thanh toán.
+
+1.9. tb_payment_history (Lịch sử thanh toán)
+
+    Lưu lịch sử thanh toán của khách hàng.
+    Hỗ trợ kiểm tra giao dịch thất bại/thành công.
+
+2. Các bảng bổ sung
+2.1. tb_reviews (Đánh giá & bình luận)
+
+    Customer có thể đánh giá sản phẩm.
+    Admin có thể kiểm soát/xóa đánh giá vi phạm.
+
+2.2. tb_inventory (Quản lý kho)
+
+    Lưu số lượng hàng tồn kho cho từng sản phẩm.
+    Admin có thể nhập/xuất hàng, kiểm tra hàng tồn.
+
+2.3. tb_discounts (Quản lý mã giảm giá)
+
+    Admin có thể tạo mã giảm giá.
+    Customer có thể sử dụng mã giảm giá khi thanh toán.
+
+2.4. tb_wishlist (Danh sách yêu thích)
+
+    Customer có thể thêm sản phẩm vào danh sách yêu thích.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Chức năng chính cho từng role
+ Customer:
+
+ Đăng ký, đăng nhập, chỉnh sửa thông tin.
+ Xem danh sách sản phẩm, danh mục.
+ Thêm sản phẩm vào giỏ hàng, đặt hàng.
+ Thanh toán đơn hàng.
+ Xem lịch sử mua hàng, đơn hàng.
+ Đánh giá & bình luận sản phẩm.
+ Thêm sản phẩm vào danh sách yêu thích.
+ Admin:
+
+ Quản lý sản phẩm (thêm/sửa/xóa).
+ Quản lý danh mục sản phẩm.
+ Quản lý đơn hàng (duyệt, thay đổi trạng thái).
+ Quản lý thanh toán & kiểm tra giao dịch.
+ Quản lý đánh giá & bình luận của khách hàng.
+ Quản lý kho hàng (cập nhật số lượng sản phẩm).
+ Quản lý mã giảm giá.
+ Quản lý danh sách tài khoản Customer/Admin.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Routes API:
+User Authentication (api/auth):
+POST   	/api/auth/register   		Đăng ký tài khoản mới
+POST   	/api/auth/login      		Đăng nhập, trả về access token
+GET    	/api/auth/profile    		Xem thông tin cá nhân
+PUT    	/api/auth/profile    		Cập nhật thông tin cá nhân
+GET    	/api/auth/users      		Lấy danh sách user
+PUT	/api/auth/users/{id} 		Chuyển trạng thái user
+
+Quản lý Sản phẩm (/api/products):
+GET    /api/products      		Lấy danh sách sản phẩm
+GET    /api/products/{id} 		Lấy chi tiết sản phẩm
+POST   /api/products      		Thêm sản phẩm mới
+PUT    /api/products/{id} 		Cập nhật thông tin sản phẩm
+DELETE /api/products/{id} 		Xóa sản phẩm
+
+Quản lý Danh mục (/api/categories):
+GET	/api/categories			Lấy danh sách danh mục
+POST	/api/categories			Thêm danh mục mới
+PUT	/api/categories/{id}		Cập nhật danh mục
+DELETE	/api/categories/{id}		Xóa danh mục
+
+Giỏ hàng (/api/cart):
+GET	/api/cart			Lấy danh sách sản phẩm trong giỏ hàng
+POST	/api/cart			Thêm sản phẩm vào giỏ hàng
+PUT	/api/cart/{id}			Cập nhật số lượng sản phẩm
+DELETE	/api/cart/{id}			Xóa sản phẩm khỏi giỏ hàng
+
+Đơn hàng (/api/orders):
+GET	/api/orders			Lấy danh sách đơn hàng
+GET	/api/orders/my			Lấy danh sách đơn hàng của user hiện tại
+GET	/api/orders/{id}		Lấy chi tiết đơn hàng
+POST	/api/orders			Tạo đơn hàng mới
+PUT	/api/orders/{id}		Cập nhật trạng thái đơn hàng
+
+Thanh toán (/api/payments):
+POST	/api/payments			Thanh toán đơn hàng
+GET	/api/payments/{orderId}		Lấy thông tin thanh toán của đơn hàng
+
+Đánh giá & Bình luận (/api/reviews):
+GET	/api/reviews/{productId}	Lấy danh sách đánh giá của sản phẩm
+POST	/api/reviews			Thêm đánh giá mới
+DELETE	/api/reviews/{id}		Xóa đánh giá
+
+Quản lý Kho (/api/inventory):
+GET	/api/inventory			Lấy danh sách sản phẩm trong kho
+PUT	/api/inventory/{id}		Cập nhật số lượng tồn kho
+
+Mã Giảm Giá (/api/discounts):
+GET	/api/discounts			Lấy danh sách mã giảm giá
+POST	/api/discounts			Thêm mã giảm giá mới
+DELETE	/api/discounts/{id}		Xóa mã giảm giá
+
+Danh sách Yêu thích (/api/wishlist):
+GET	/api/wishlist			Lấy danh sách sản phẩm yêu thích
+POST	/api/wishlist			Thêm sản phẩm vào danh sách yêu thích
+DELETE	/api/wishlist/{id}		Xóa sản phẩm khỏi danh sách yêu thích
+
+Thống kê doanh thu (/api/reports):
+GET	/api/reports/revenue?filter=day|month|year	Lấy tổng doanh thu theo ngày, tháng, năm
+GET	/api/reports/products?sort=revenue|quantity	Lấy doanh thu từng sản phẩm, số lượng đã bán
+GET	/api/reports/customers?sort=spending		Lấy danh sách khách hàng có tổng tiền mua cao nhất
+

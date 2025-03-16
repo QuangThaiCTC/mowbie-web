@@ -1,7 +1,7 @@
 package com.mowbie.mowbie_backend.repository;
 
 import com.mowbie.mowbie_backend.config.Database;
-import com.mowbie.mowbie_backend.dto.CategoryDTO;
+import com.mowbie.mowbie_backend.model.Category;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,82 +11,62 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryRepository {
-    public static List<CategoryDTO> getAllCategories() {
-        List<CategoryDTO> categories = new ArrayList<>();
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT * FROM tb_categories";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
+    public static List<Category> getAllCategory() {
+        try (Connection conn = Database.getConnection()){
+            String sql = "select * from tb_categories";
+            PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
-
+            List<Category> categories = new ArrayList<>();
             while (rs.next()) {
-                categories.add(new CategoryDTO(
+                categories.add(new Category(
                         rs.getLong("category_id"),
-                        rs.getString("category_name"),
-                        rs.getString("category_description")
+                        rs.getString("category_name")
                 ));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return categories;
-    }
-
-    public static CategoryDTO getCategoryById(Long categoryId) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT * FROM tb_categories WHERE category_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setLong(1, categoryId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return new CategoryDTO(
-                        rs.getLong("category_id"),
-                        rs.getString("category_name"),
-                        rs.getString("category_description")
-                );
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static int createCategory(String categoryName, String description) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "INSERT INTO tb_categories (category_name, category_description) VALUES (?, ?)";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setString(1, categoryName);
-            ps.setString(2, description);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            return categories;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return null;
         }
     }
 
-    public static int updateCategory(Long categoryId, String categoryName, String description) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "UPDATE tb_categories SET category_name = ?, category_description = ? WHERE category_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setString(1, categoryName);
-            ps.setString(2, description);
-            ps.setLong(3, categoryId);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+    public static int addCategory(Category category) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "INSERT INTO tb_categories (category_name) VALUES (?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, category.getCategoryName());
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return 0;
         }
     }
 
-    public static int deleteCategory(Long categoryId) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "DELETE FROM tb_categories WHERE category_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setLong(1, categoryId);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+    public static int updateCategory(Category category) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "UPDATE tb_categories SET category_name = ? WHERE category_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, category.getCategoryName());
+            ps.setLong(2, category.getCategoryId());
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return 0;
+        }
+    }
+
+    public static int deleteCategory(Category category) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "DELETE FROM tb_categories WHERE category_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setLong(1, category.getCategoryId());
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n" + e.getMessage());
+            return 0;
         }
     }
 }

@@ -1,66 +1,19 @@
 package com.mowbie.mowbie_backend.controller;
 
-import com.mowbie.mowbie_backend.model.User;
+import com.mowbie.mowbie_backend.dto.ResponseDTO;
+import com.mowbie.mowbie_backend.dto.UserDTO;
 import com.mowbie.mowbie_backend.repository.UserRepository;
 import com.mowbie.mowbie_backend.security.JwtUtil;
 import com.mowbie.mowbie_backend.security.Regex;
-import com.mowbie.mowbie_backend.security.SecurityInfo;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
+import org.springframework.web.bind.annotation.*;
 import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam("email") String email,
-                                   @RequestParam("password") String password,
-                                   HttpServletResponse response,
-                                   HttpServletRequest request) {
-
-        // Kiểm tra token trong cookie
-        Optional<String> existingToken = getTokenFromRequest(request);
-        if (existingToken.isPresent() && JwtUtil.validateToken(existingToken.get())) {
-            String emailFromToken = JwtUtil.getEmailFromJWT(existingToken.get());
-            if (emailFromToken.equals(email)) {
-                Optional<User> user = UserRepository.getUserByIdOrEmail(null, emailFromToken);
-                if (user.isPresent()) {
-                    return ResponseEntity.ok(user.get());
-                }
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("message", "Email hoặc mật khẩu không chính xác!"));
-            }
-        }
-
-        // Kiểm tra email & password hợp lệ
-        if (!Regex.isValidEmail(email) || !Regex.isValidPassword(password)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không chính xác!"));
-        }
-
-        // Kiểm tra user trong DB
-        Optional<User> userOptional = UserRepository.getUserByIdOrEmail(null, email);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (SecurityInfo.verifyPassword(password, user.getPassword())) {
-                String newToken = JwtUtil.generateToken(email);
-                setCookie(response, "JWT", newToken, 3600);
-                return ResponseEntity.ok(user);
-            }
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Email hoặc mật khẩu không chính xác!"));
-    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestParam("username") String username,
@@ -70,50 +23,102 @@ public class AuthController {
                                       @RequestParam("confirm_password") String confirmPassword) {
 
         if (!Regex.isValidEmail(email)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Email không hợp lệ!"));
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_EMAIL","Email không hợp lệ. Vui lòng nhập email đúng định dạng như example@email.com"));
         }
         if (!Regex.isValidPassword(password)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu không hợp lệ!"));
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_PASSWORD","Mật khẩu quá yếu. Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số."));
         }
         if (!Regex.isValidPhoneNumber(phoneNumber)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Số điện thoại không hợp lệ!"));
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_PHONE","Số điện thoại không hợp lệ!"));
         }
         if (!password.equals(confirmPassword)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu không trùng khớp!"));
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "ISN'T MATCH","Mật khẩu xác nhận không khớp!"));
         }
 
-        int status = UserRepository.createUser(username, email, phoneNumber, password);
+        int status = UserRepository.register(username, email, phoneNumber, password);
         return switch (status) {
-            case 1 -> ResponseEntity.ok(Map.of("message", "Tạo tài khoản thành công!"));
-            case 0 -> ResponseEntity.badRequest().body(Map.of("message", "Email này đã tồn tại!"));
-            default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Có lỗi xảy ra, vui lòng thử lại!"));
+            case 1 -> ResponseEntity.ok().body(ResponseDTO.success( "Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.",null));
+            case 0 -> ResponseEntity.status(400).body(ResponseDTO.error(400, "EMAIL_EXIST","Email đã được sử dụng. Vui lòng chọn email khác!"));
+            default -> ResponseEntity.status(400).body(ResponseDTO.error(400, "SQL_EXCEPTION","Đã xảy ra lỗi, vui lòng thử lại!"));
         };
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login (@RequestParam("email") String email,
+                                    @RequestParam("password") String password,
+                                    HttpServletResponse response) {
+        if (!Regex.isValidEmail(email)) {
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_EMAIL","Email hoặc mật khẩu không đúng, vui lòng thử lại!"));
+        }
+
+        if (!Regex.isValidPassword(password)) {
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_PASSWORD","Email hoặc mật khẩu không đúng, vui lòng thử lại!"));
+        }
+
+        // Tìm user trong database
+        UserDTO user = UserRepository.login(email, password);
+        if (user == null) {
+            return ResponseEntity.status(401)
+                    .body(ResponseDTO.error(401, "USER_NOT_FOUND", "Email hoặc mật khẩu không đúng, vui lòng thử lại!"));
+        }
+
+        // Kiểm tra trạng thái tài khoản (nếu bị khóa thì không cho login)
+        if (!user.getIsActive()) {
+            return ResponseEntity.status(403)
+                    .body(ResponseDTO.error(403, "ACCOUNT_LOCKED", "Tài khoản của bạn đã bị khóa!"));
+        }
+        JwtUtil jwtUtil = new JwtUtil();
+        String accessToken = jwtUtil.generateToken(user.getEmail(), 15 * 60 * 1000); // 15 phút
+        String refreshToken = jwtUtil.generateToken(user.getEmail(), 7 * 24 * 60 * 60 * 1000); // 7 ngày
+
+        // Lưu refresh token vào HttpOnly Cookie
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(ResponseDTO.success("Đăng nhập thành công", Map.of(
+                "access_token", accessToken, "user", user
+        )));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        setCookie(response, "JWT", "", 0);
-        return ResponseEntity.ok(Map.of("message", "Đã đăng xuất!"));
-    }
-
-    private Optional<String> getTokenFromRequest(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("JWT".equals(cookie.getName())) {
-                    return Optional.of(cookie.getValue());
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    private void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
+        // Xóa cookie refresh_token
+        Cookie cookie = new Cookie("refresh_token", null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // Bật true nếu dùng HTTPS
-        cookie.setMaxAge(maxAge);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Hết hạn ngay lập tức
         response.addCookie(cookie);
+
+        return ResponseEntity.ok(ResponseDTO.success("Đăng xuất thành công", null));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@CookieValue("refresh_token") String refreshToken) {
+        JwtUtil jwtUtil = new JwtUtil();
+        if (!jwtUtil.isValidToken(refreshToken)) {
+            return ResponseEntity.status(401).body(ResponseDTO.error(401, "INVALID_REFRESH_TOKEN", "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại."));
+        }
+
+        String email = jwtUtil.extractEmail(refreshToken);
+        String newAccessToken = jwtUtil.generateToken(email, 15 * 60 * 1000); // 15 phút
+        UserDTO user = UserRepository.getUserByEmailOrId(email, null);
+
+        if (user == null) {
+            return ResponseEntity.status(401).body(ResponseDTO.error(401, "INVALID_REFRESH_TOKEN", "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại."));
+        }
+        if (!user.getIsActive()) {
+            return ResponseEntity.status(403)
+                    .body(ResponseDTO.error(403, "ACCOUNT_LOCKED", "Tài khoản của bạn đã bị khóa!"));
+        }
+
+        return ResponseEntity.ok(ResponseDTO.success("Làm mới token thành công", Map.of(
+                "access_token", newAccessToken, "user", user
+        )));
     }
 }
 
