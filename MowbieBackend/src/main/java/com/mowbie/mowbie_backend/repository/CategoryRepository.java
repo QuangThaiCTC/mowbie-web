@@ -30,11 +30,11 @@ public class CategoryRepository {
         }
     }
 
-    public static int addCategory(Category category) {
+    public static int addCategory(Long cateId, String cateName) {
         try (Connection conn = Database.getConnection()){
             String sql = "INSERT INTO tb_categories (category_name) VALUES (?)";
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, category.getCategoryName());
+            ps.setString(1, cateName);
             ps.executeUpdate();
             return 1;
         } catch (SQLException e){
@@ -43,12 +43,12 @@ public class CategoryRepository {
         }
     }
 
-    public static int updateCategory(Category category) {
+    public static int updateCategory(Long cateId, String cateName) {
         try (Connection conn = Database.getConnection()){
             String sql = "UPDATE tb_categories SET category_name = ? WHERE category_id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, category.getCategoryName());
-            ps.setLong(2, category.getCategoryId());
+            ps.setString(1, cateName);
+            ps.setLong(2, cateId);
             ps.executeUpdate();
             return 1;
         } catch (SQLException e){
@@ -57,11 +57,11 @@ public class CategoryRepository {
         }
     }
 
-    public static int deleteCategory(Category category) {
+    public static int deleteCategory(Long cateId, String cateName) {
         try (Connection conn = Database.getConnection()){
             String sql = "DELETE FROM tb_categories WHERE category_id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setLong(1, category.getCategoryId());
+            ps.setLong(1, cateId);
             ps.executeUpdate();
             return 1;
         } catch (SQLException e){

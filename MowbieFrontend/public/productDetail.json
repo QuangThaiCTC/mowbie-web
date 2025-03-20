@@ -1,0 +1,70 @@
+{
+    "productDetail": {
+        "productId": 1,
+        "productName": "iPhone 14 Pro",
+        "productDescription": "Sản phẩm mới nhất từ Apple, thiết kế sang trọng, hiệu năng mạnh mẽ.",
+        "productPrice": 35090000,
+        "productImages": [
+            "uploads/products/iphone-14-pro.webp",
+            "uploads/users/bokho.jpg",
+            "uploads/users/cappy.jpg",
+            "uploads/products/iphone-14-pro.webp",
+            "uploads/products/iphone-14-pro.webp"
+        ],
+        "productSpecs": [
+            {
+                "specTitle": "Kích thước màn hình",
+                "specContent": "6.1 inches"
+            },
+            {
+                "specTitle": "Công nghệ màn hình",
+                "specContent": "Super Retina XDR OLED"
+            },
+            {
+                "specTitle": "Camera sau",
+                "specContent": "Camera chính: 48 MP, f/1.8, 24mm, OIS\nCamera góc siêu rộng: 12 MP, f/2.2, 120˚, 1.4µm\nCamera tele: 12 MP, f/2.8, PDAF, OIS, 3x optical zoom\nCảm biến độ sâu TOF 3D LiDAR"
+            },
+            {
+                "specTitle": "Camera trước",
+                "specContent": "Camera selfie: 12 MP, f/1.9, 23mm, PDAF "
+            },
+            {
+                "specTitle": "Chipset",
+                "specContent": "Apple A16 Bionic 6 nhân"
+            },
+            {
+                "specTitle": "Công nghệ NFC",
+                "specContent": "Có"
+            },
+            {
+                "specTitle": "Dung lượng RAM",
+                "specContent": "6 GB"
+            },
+            {
+                "specTitle": "Bộ nhớ trong",
+                "specContent": "128 GB"
+            },
+            {
+                "specTitle": "Pin",
+                "specContent": "3200 mAh"
+            },
+            {
+                "specTitle": "Hệ điều hành",
+                "specContent": "iOS 16"
+            },
+            {
+                "specTitle": "Độ phân giải màn hình",
+                "specContent": "2556 x 1179 pixels"
+            },
+            {
+                "specTitle": "Tính năng màn hình",
+                "specContent": "Công nghệ ProMotion với tần số quét 120Hz\nTỷ lệ tương phản 2.000.000: 1\nĐộ sáng tối đa: 2.000 nits (ngoài trời)"
+            },
+            {
+                "specTitle": "Loại CPU",
+                "specContent": "6 nhân"
+            }
+        ],
+        "stockQuantity": 100
+    }
+}

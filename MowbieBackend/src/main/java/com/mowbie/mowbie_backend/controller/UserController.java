@@ -51,6 +51,12 @@ public class UserController {
             @RequestParam(required = false) String newPassword,
             @RequestParam(required = false) MultipartFile avatar) {
 
+        if (!(phoneNumber == null) && !Regex.isValidPhoneNumber(phoneNumber)){
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_PHONE","Số điện thoại không hợp lệ!"));
+        }
+        if (!(newPassword == null) && !Regex.isValidPassword(newPassword)){
+            return ResponseEntity.status(400).body(ResponseDTO.error(400, "INVALID_PASSWORD","Mật khẩu quá yếu. Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số."));
+        }
         String avatarPath = null;
 
         // Kiểm tra nếu có file avatar mới được tải lên

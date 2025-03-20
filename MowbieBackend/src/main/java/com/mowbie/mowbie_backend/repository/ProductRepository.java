@@ -1,9 +1,13 @@
 package com.mowbie.mowbie_backend.repository;
 
 import com.mowbie.mowbie_backend.config.Database;
+import com.mowbie.mowbie_backend.dto.InventoryDTO;
 import com.mowbie.mowbie_backend.dto.ProductDTO;
+import com.mowbie.mowbie_backend.dto.ProductDetail;
+import com.mowbie.mowbie_backend.dto.ProductSpecDTO;
 import com.mowbie.mowbie_backend.model.Product;
 
+import javax.xml.crypto.Data;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,167 +19,118 @@ import java.util.List;
 public class ProductRepository {
 
     public static List<ProductDTO> getAllProducts() {
-        List<ProductDTO> products = new ArrayList<>();
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT * FROM tb_products";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ResultSet rs = ps.executeQuery();
-
+        try (Connection conn = Database.getConnection()){
+            String sql = "SELECT p.product_id, p.product_name, p.product_price, (SELECT pi.product_image_path FROM tb_product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.product_image_id LIMIT 1) AS product_image FROM tb_products p";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.executeQuery();
+            ResultSet rs = ps.getResultSet();
+            List<ProductDTO> products = new ArrayList<>();
             while (rs.next()) {
                 products.add(new ProductDTO(
                         rs.getLong("product_id"),
                         rs.getString("product_name"),
-                        rs.getString("product_description"),
-                        rs.getString("product_image_path"),
                         rs.getBigDecimal("product_price"),
-                        rs.getLong("category_id")
+                        rs.getString("product_image")
                 ));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return products;
-    }
-
-    public static ProductDTO getProductById(Long productId) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT * FROM tb_products WHERE product_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setLong(1, productId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return new ProductDTO(
-                        rs.getLong("product_id"),
-                        rs.getString("product_name"),
-                        rs.getString("product_description"),
-                        rs.getString("product_image_path"),
-                        rs.getBigDecimal("product_price"),
-                        rs.getLong("category_id")
-                );
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return products;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
         }
         return null;
     }
 
-    public static List<ProductDTO> getProductsByCategory(Long categoryId) {
-        List<ProductDTO> products = new ArrayList<>();
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT * FROM tb_products WHERE category_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
-            ps.setLong(1, categoryId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                products.add(new ProductDTO(
-                        rs.getLong("product_id"),
-                        rs.getString("product_name"),
-                        rs.getString("product_description"),
-                        rs.getString("product_image_path"),
-                        rs.getBigDecimal("product_price"),
-                        rs.getLong("category_id")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return products;
-    }
-
-    public static int createProduct(String productName, String description, String imagePath, BigDecimal price, Long categoryId) {
-        try (Connection conn = Database.getConnection()) {
-            String sql = "INSERT INTO tb_products (product_name, product_description, product_image_path, product_price, category_id) VALUES (?, ?, ?, ?, ?)";
+    public static int addProduct(String productName, String productDescription, BigDecimal productPrice, Long categoryId) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "INSERT INTO tb_products (product_name, product_description, product_price, category_id) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, productName);
-            ps.setString(2, description);
-            ps.setString(3, imagePath);
-            ps.setBigDecimal(4, price);
-            ps.setLong(5, categoryId);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            ps.setString(2, productDescription);
+            ps.setBigDecimal(3, productPrice);
+            ps.setLong(4, categoryId);
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return 0;
         }
     }
 
-    public static int updateProduct(Long productId, String productName, String description, String imagePath, BigDecimal price, Long categoryId) {
-        try (Connection conn = Database.getConnection()) {
-            // Tạo StringBuilder để xây dựng câu lệnh UPDATE động
-            StringBuilder sqlBuilder = new StringBuilder("UPDATE tb_products SET ");
-            List<Object> params = new ArrayList<>();
-
-            if (productName != null && !productName.isEmpty()) {
-                sqlBuilder.append("product_name = ?, ");
-                params.add(productName);
-            }
-            if (description != null && !description.isEmpty()) {
-                sqlBuilder.append("product_description = ?, ");
-                params.add(description);
-            }
-            if (imagePath != null && !imagePath.isEmpty()) {
-                sqlBuilder.append("product_image_path = ?, ");
-                params.add(imagePath);
-            }
-            if (price != null) {
-                sqlBuilder.append("product_price = ?, ");
-                params.add(price);
-            }
-            if (categoryId != null) {
-                sqlBuilder.append("category_id = ?, ");
-                params.add(categoryId);
-            }
-
-            // Kiểm tra xem có dữ liệu để cập nhật không
-            if (params.isEmpty()) {
-                return 0; // Không có gì để cập nhật
-            }
-
-            // Xóa dấu ", " cuối cùng và thêm điều kiện WHERE
-            sqlBuilder.setLength(sqlBuilder.length() - 2);
-            sqlBuilder.append(" WHERE product_id = ?");
-            params.add(productId);
-
-            // Chuẩn bị câu lệnh SQL
-            PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString());
-
-            // Gán giá trị vào câu lệnh SQL
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    public static int deleteProduct(Long productId) {
-        try (Connection conn = Database.getConnection()) {
-            String sql = "DELETE FROM tb_products WHERE product_id = ?";
+    public static ProductDetail getProductDetails(Long productId) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "SELECT product_id, product_name, product_description, product_price FROM tb_products where product_id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setLong(1, productId);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    public static String getImagePathById(Long productId) {
-        try (Connection conn = Database.getConnection()) {
-            String sqlQuery = "SELECT product_image_path FROM tb_products WHERE product_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sqlQuery);
             ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getString("product_image_path");
+                return new ProductDetail(
+                        rs.getLong("product_id"),
+                        rs.getString("product_name"),
+                        rs.getString("product_description"),
+                        rs.getBigDecimal("product_price"),
+                        getProductImages(productId),
+                        getProductSpecs(productId),
+                        getProductStock(productId)
+                );
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return null;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return null;
         }
-        return null;
+    }
+
+    private static List<String> getProductImages(Long productId) {
+        try (Connection conn = Database.getConnection()){
+            List<String> productImages = new ArrayList<>();
+            String sql = "SELECT product_image_path FROM tb_product_images WHERE product_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setLong(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                productImages.add(rs.getString("product_image_path"));
+            }
+            return productImages;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return null;
+        }
+    }
+
+    private static List<ProductSpecDTO> getProductSpecs(Long productId) {
+        try (Connection conn = Database.getConnection()){
+            List<ProductSpecDTO> productSpecs = new ArrayList<>();
+            String sql = "SELECT specs_title, specs_content FROM tb_product_specs WHERE product_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setLong(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                productSpecs.add(new ProductSpecDTO(
+                        rs.getString("specs_title"),
+                        rs.getString("specs_content")
+                ));
+            }
+            return productSpecs;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return null;
+        }
+    }
+
+    private static Integer getProductStock(Long productId) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "SELECT COALESCE(SUM(i.stock_change), 0) AS stockQuantity FROM tb_inventory i WHERE i.product_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setLong(1, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()){
+                return rs.getInt("stockQuantity");
+            }
+            return 0;
+        } catch (SQLException e){
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return 0;
+        }
     }
 }
 

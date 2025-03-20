@@ -12,5 +12,11 @@ public class Product {
     private BigDecimal productPrice;
     private Long categoryId;
 
-
+    public Product(Long productId, String productName, String productDescription, BigDecimal productPrice, Long categoryId) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productDescription = productDescription;
+        this.productPrice = productPrice;
+        this.categoryId = categoryId;
+    }
 }

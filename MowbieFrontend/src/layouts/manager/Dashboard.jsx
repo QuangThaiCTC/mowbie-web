@@ -1,7 +1,7 @@
 import React from "react";
 
-const Carousel = () => {
+const Dashboard = () => {
   return <div></div>;
 };
 
-export default Carousel;
+export default Dashboard;

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { Helmet } from "react-helmet";
-import Navbar from "../../components/layout/customer/Navbar";
+import Navbar from "../../layouts/customer/Navbar";
 import axios from "axios";
+import Banner from "../../components/customer/Banner";
 
 const Home = () => {
   useEffect(() => {
@@ -30,14 +30,10 @@ const Home = () => {
   }, []);
 
   return (
-    <>
-      <Helmet>
-        <link rel="icon" type="image/png" href="logo-white.png" />
-        <title>Trang chủ - Mowbie</title>
-      </Helmet>
+    <div>
       <Navbar />
-      <div className="flex h-screen lg:px-50 lg:py-5 lg:pt-20 bg-base-200"></div>
-    </>
+      <Banner />
+    </div>
   );
 };
 

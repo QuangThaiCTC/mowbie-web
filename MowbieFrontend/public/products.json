@@ -1,0 +1,91 @@
+{
+    "products": [
+        {
+            "productId": 1,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },
+        {
+            "productId": 2,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": ""
+        },
+        {
+            "productId": 3,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 4,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 5,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        }
+        ,
+        {
+            "productId": 6,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },
+        {
+            "productId": 7,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 8,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        }
+        ,{
+            "productId": 9,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 10,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 11,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 12,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 13,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 14,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 15,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        },{
+            "productId": 16,
+            "productName": "iPhone 14 Pro",
+            "productPrice": 35090000,
+            "productImage": "uploads/products/iphone-14-pro.webp"
+        }
+    ]
+}

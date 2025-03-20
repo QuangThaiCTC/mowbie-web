@@ -110,8 +110,8 @@ public class UserRepository {
         Map<String, String> fields = new HashMap<>();
 
         if (username != null && !username.isEmpty()) fields.put("username", username);
-        if (phoneNumber != null && !phoneNumber.isEmpty() && Regex.isValidPhoneNumber(phoneNumber)) fields.put("phone_number", phoneNumber);
-        if (newPassword != null && !newPassword.isEmpty() && Regex.isValidPassword(newPassword)) fields.put("password", SecurityInfo.hashString(newPassword));
+        if (phoneNumber != null && !phoneNumber.isEmpty()) fields.put("phone_number", phoneNumber);
+        if (newPassword != null && !newPassword.isEmpty()) fields.put("password", SecurityInfo.hashString(newPassword));
         if (avatarPath != null && !avatarPath.isEmpty()) fields.put("avatar_path", avatarPath);
         if (fields.isEmpty()) {
             System.out.println("Không có trường nào cần cập nhật!");

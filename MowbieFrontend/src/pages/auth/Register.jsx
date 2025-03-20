@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Helmet } from "react-helmet";
-import ErrorAlert from "../components/ui/ErrorAlert";
+import ErrorAlert from "../../components/common/ErrorAlert";
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+const Register = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    username: "",
+    phone_number: "",
+    password: "",
+    confirm_password: "",
+  });
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -14,15 +19,8 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const getAvatarUrl = (avatarPath) => {
-    if (!avatarPath) {
-      return "http://192.168.10.1:8081/uploads/users/default.png";
-    }
-    return `http://192.168.10.1:8081/api/${avatarPath}`;
-  };
-
-  const handleLogin = async () => {
-    if (!formData.email.trim() || !formData.password.trim()) {
+  const handleRegister = async () => {
+    if (Object.values(formData).some((value) => value.trim() === "")) {
       setErrorMessage("Không được để trống!");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
@@ -31,38 +29,18 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://192.168.10.1:8081/api/auth/login",
+        "http://192.168.10.1:8081/api/auth/register",
         null,
-        {
-          params: formData,
-          withCredentials: true,
-        }
+        { params: formData, withCredentials: true }
       );
 
-      if (response.status === 200) {
-        const { access_token, user } = response.data.data;
-
-        // Lưu thông tin vào localStorage
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("user", JSON.stringify(user));
-
-        const avatarUrl = getAvatarUrl(response.data.data.user.avatarPath);
-        localStorage.setItem("avatar", avatarUrl);
-
-        // Điều hướng theo vai trò user
-        navigate(user.userRole === "manager" ? "/dashboard" : "/home");
+      if (response.status !== 200) {
+        setErrorMessage(response?.data?.message);
       }
 
-      if (
-        response.status === 400 ||
-        response.status === 401 ||
-        response.status === 403
-      ) {
-        setErrorMessage(response.data.message);
-        localStorage.clear();
-      }
+      navigate("/login");
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "Lỗi hệ thống!");
+      setErrorMessage(error.response?.data?.message);
     } finally {
       setLoading(false);
       setTimeout(() => setErrorMessage(""), 3000);
@@ -71,11 +49,8 @@ const Login = () => {
 
   return (
     <>
-      <Helmet>
-        <link rel="icon" type="image/png" href="logo-white.png" />
-        <title>Đăng nhập - Mowbie</title>
-      </Helmet>
       <ErrorAlert message={errorMessage} type="error" />
+
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-base-200">
         <div className="flex m-5">
           <label className="text-5xl font-bold">Mow</label>
@@ -85,42 +60,82 @@ const Login = () => {
         <div className="bg-base-300 p-6 rounded-lg shadow-lg w-96">
           <fieldset className="border border-base-100 p-4 rounded mb-4">
             <legend className="fieldset-legend text-base text-10xl font-bold">
-              Đăng nhập
+              Đăng ký
             </legend>
             <label className="text-base text-sm font-medium">Email:</label>
             <input
               name="email"
               type="email"
               className="input input-bordered w-full mt-2 bg-base-100 text-base-500"
+              required
               placeholder="vidu@mail.com"
               value={formData.email}
               onChange={handleChange}
             />
+
+            <label className="text-base text-sm font-medium">Họ và tên:</label>
+            <input
+              name="username"
+              type="text"
+              className="input input-bordered w-full mt-2 bg-base-100 text-base-500"
+              required
+              placeholder="Nguyễn Văn A"
+              value={formData.username}
+              onChange={handleChange}
+            />
+
+            <label className="text-base text-sm font-medium">
+              Số điện thoại:
+            </label>
+            <input
+              name="phone_number"
+              type="phone"
+              className="input input-bordered w-full mt-2 bg-base-100 text-base-500"
+              required
+              placeholder="Nhập số điện thoại..."
+              value={formData.phone_number}
+              onChange={handleChange}
+            />
+
             <label className="text-base text-sm font-medium">Mật khẩu:</label>
             <input
               name="password"
               type="password"
               className="input input-bordered w-full mt-2 bg-base-100 text-base-500"
+              required
               placeholder="Vidu123"
               value={formData.password}
+              onChange={handleChange}
+            />
+
+            <label className="text-base text-sm font-medium">
+              Xác nhận mật khẩu:
+            </label>
+            <input
+              name="confirm_password"
+              type="password"
+              className="input input-bordered w-full mt-2 bg-base-100 text-base-500"
+              required
+              placeholder="Vidu123"
+              value={formData.confirm_password}
               onChange={handleChange}
             />
           </fieldset>
 
           <div className="flex flex-col items-center justify-center">
             <button
-              onClick={handleLogin}
+              onClick={handleRegister}
               className={`btn btn-primary w-full ${loading && "btn-disabled"}`}
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading ? "Đang đăng ký..." : "Đăng ký"}
             </button>
           </div>
 
           <p className="text-center text-sm text-base-500 mt-3">
-            Bạn chưa có tài khoản?{" "}
-            <Link to="/register" className="text-base text-sm underline">
-              Đăng ký ngay
-            </Link>{" "}
+            Bạn đã có tài khoản?{" "}
+            <Link to="/login" className="text-base text-sm underline">
+              Đăng nhập ngay
+            </Link>
             <br />
             <Link to="/home" className="text-base text-sm underline">
               Tiếp tục với tư cách khách
@@ -132,4 +147,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

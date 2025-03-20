@@ -1,22 +1,16 @@
-import SideBar from "../../components/layout/manager/SideBar";
-import NavbarManager from "../../components/layout/manager/NavbarManager";
+import SideBar from "../../layouts/manager/SideBar";
+import NavbarManager from "../../layouts/manager/NavbarManager";
 import { Outlet } from "react-router-dom";
 
 const ManagerDashboard = () => {
   return (
-    <div className="fixed flex min-h-screen bg-base-200">
-      {/* Sidebar cố định bên trái */}
+    <div className="fixed flex min-h-full min-w-full bg-base-200">
       <SideBar />
 
-      {/* Phần bên phải chứa Navbar + Nội dung */}
-      <div>
-        {/* Navbar cố định phía trên */}
+      <div className="w-full h-full">
         <NavbarManager />
 
-        {/* Nội dung động sẽ hiển thị ở đây */}
-        <div>
-          <Outlet />
-        </div>
+        <Outlet />
       </div>
     </div>
   );
