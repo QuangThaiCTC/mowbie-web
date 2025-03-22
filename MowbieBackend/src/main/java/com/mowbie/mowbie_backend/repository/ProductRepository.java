@@ -1,11 +1,9 @@
 package com.mowbie.mowbie_backend.repository;
 
 import com.mowbie.mowbie_backend.config.Database;
-import com.mowbie.mowbie_backend.dto.InventoryDTO;
-import com.mowbie.mowbie_backend.dto.ProductDTO;
-import com.mowbie.mowbie_backend.dto.ProductDetail;
-import com.mowbie.mowbie_backend.dto.ProductSpecDTO;
+import com.mowbie.mowbie_backend.dto.*;
 import com.mowbie.mowbie_backend.model.Product;
+import com.mowbie.mowbie_backend.security.SecurityInfo;
 
 import javax.xml.crypto.Data;
 import java.math.BigDecimal;
@@ -14,7 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProductRepository {
 
@@ -40,7 +40,7 @@ public class ProductRepository {
         return null;
     }
 
-    public static int addProduct(String productName, String productDescription, BigDecimal productPrice, Long categoryId) {
+    public static int createProduct(String productName, String productDescription, BigDecimal productPrice, Long categoryId) {
         try (Connection conn = Database.getConnection()){
             String sql = "INSERT INTO tb_products (product_name, product_description, product_price, category_id) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -53,6 +53,57 @@ public class ProductRepository {
         } catch (SQLException e){
             System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
             return 0;
+        }
+    }
+
+    public static Product updateProduct(Long productId, String productName, String productDescription, BigDecimal productPrice, Long categoryId) {
+        Map<String, String> fields = new HashMap<>();
+
+        if (productName != null && !productName.isEmpty()) fields.put("product_name", productName);
+        if (productDescription != null && !productDescription.isEmpty()) fields.put("product_description", productDescription);
+        if (productPrice != null && !productPrice.toString().isEmpty()) fields.put("product_price", productPrice.toString());
+        if (categoryId != null && !categoryId.toString().isEmpty()) fields.put("category_id", categoryId.toString());
+        if (fields.isEmpty()) {
+            System.out.println("Không có trường nào cần cập nhật!");
+            return null;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE tb_products SET ");
+        int count = 0;
+        for (String key : fields.keySet()) {
+            sql.append(key).append(" = ?");
+            count++;
+            if (count < fields.size()) sql.append(", ");
+        }
+        sql.append(" WHERE product_id = ?");
+
+        try (Connection conn = Database.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+            int index = 1;
+            for (String value : fields.values()) {
+                ps.setString(index++, value);
+                System.out.println(value);
+            }
+            ps.setLong(index, productId);
+
+            ps.executeUpdate();
+            String sqlQuery = "SELECT * FROM tb_products WHERE product_id = ?";
+            ps = conn.prepareStatement(sqlQuery);
+            ps.setLong(1, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Product(
+                        rs.getLong("product_id"),
+                        rs.getString("product_name"),
+                        rs.getString("product_description"),
+                        rs.getBigDecimal("product_price"),
+                        rs.getLong("category_id")
+                );
+            }
+            return null;
+        } catch (SQLException e) {
+            System.out.println("Lỗi khi cập nhật sản phẩm: " + e.getMessage());
+            return null;
         }
     }
 
@@ -80,15 +131,18 @@ public class ProductRepository {
         }
     }
 
-    private static List<String> getProductImages(Long productId) {
+    private static List<ProductImageDTO> getProductImages(Long productId) {
         try (Connection conn = Database.getConnection()){
-            List<String> productImages = new ArrayList<>();
-            String sql = "SELECT product_image_path FROM tb_product_images WHERE product_id = ?";
+            List<ProductImageDTO> productImages = new ArrayList<>();
+            String sql = "SELECT product_image_id, product_image_path FROM tb_product_images WHERE product_id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setLong(1, productId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                productImages.add(rs.getString("product_image_path"));
+                productImages.add(new ProductImageDTO(
+                        rs.getLong("product_image_id"),
+                        rs.getString("product_image_path")
+                ));
             }
             return productImages;
         } catch (SQLException e){

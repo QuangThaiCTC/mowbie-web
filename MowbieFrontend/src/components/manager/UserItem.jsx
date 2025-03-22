@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const UserItem = ({ user }) => {
-  const defaultAvatar =
-    "http://192.168.10.1:8081/api/uploads/users/default.png";
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const defaultAvatar = `${API_URL}/uploads/users/default.png`;
   const [avatar, setAvatar] = useState(null);
   const [isActive, setIsActive] = useState(user.isActive);
+  const access_token = localStorage.getItem('access_token');
 
   useEffect(() => {
     if (user.avatarPath) {
-      setAvatar("http://192.168.10.1:8081/api/" + user.avatarPath);
+      setAvatar(`${API_URL}/` + user.avatarPath);
     } else {
       setAvatar(defaultAvatar);
     }
@@ -20,24 +22,23 @@ const UserItem = ({ user }) => {
     setIsActive(newStatus);
 
     try {
-      const response = await axios.put(
-        "http://192.168.10.1:8081/api/users/status",
-        null,
-        {
-          params: {
-            userId: user.userId,
-            status: newStatus,
-          },
-        }
-      );
+      const response = await axios.put(`${API_URL}/users/status`, null, {
+        params: {
+          userId: user.userId,
+          status: newStatus,
+        },
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
 
       if (response.data.status !== 200) {
-        alert(response.data.message || "Có lỗi xảy ra!");
+        alert(response.data.message || 'Có lỗi xảy ra!');
         setIsActive(!newStatus);
       }
     } catch (error) {
-      console.error("Lỗi cập nhật trạng thái:", error);
-      alert("Không thể cập nhật trạng thái!");
+      console.error('Lỗi cập nhật trạng thái:', error);
+      alert('Không thể cập nhật trạng thái!');
       setIsActive(!newStatus);
     }
   };
@@ -73,11 +74,11 @@ const UserItem = ({ user }) => {
       <th>
         <button
           className={`btn btn-outline btn-xs ${
-            isActive ? "btn-error" : "btn-success"
+            isActive ? 'btn-error' : 'btn-success'
           }`}
           onClick={handleToggleStatus}
         >
-          {isActive ? "Khoá tài khoản" : "Mở khoá tài khoản"}
+          {isActive ? 'Khoá tài khoản' : 'Mở khoá tài khoản'}
         </button>
       </th>
     </tr>

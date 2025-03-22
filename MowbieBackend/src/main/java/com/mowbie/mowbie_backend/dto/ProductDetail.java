@@ -11,11 +11,11 @@ public class ProductDetail {
     private String productName;
     private String productDescription;
     private BigDecimal productPrice;
-    private List<String> productImages;
+    private List<ProductImageDTO> productImages;
     private List<ProductSpecDTO> productSpecs;
     private Integer stockQuantity;
 
-    public ProductDetail(Long productId, String productName, String productDescription, BigDecimal productPrice, List<String> productImages, List<ProductSpecDTO> productSpecs, Integer stockQuantity) {
+    public ProductDetail(Long productId, String productName, String productDescription, BigDecimal productPrice, List<ProductImageDTO> productImages, List<ProductSpecDTO> productSpecs, Integer stockQuantity) {
         this.productId = productId;
         this.productName = productName;
         this.productDescription = productDescription;

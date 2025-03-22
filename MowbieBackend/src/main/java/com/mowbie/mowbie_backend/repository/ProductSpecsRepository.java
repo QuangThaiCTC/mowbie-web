@@ -21,4 +21,17 @@ public class ProductSpecsRepository {
             return 0;
         }
     }
+
+    public static int deleteProductSpec(Long specId) {
+        try (Connection conn = Database.getConnection()){
+            String sql = "DELETE FROM tb_product_specs WHERE product_spec_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setLong(1, specId);
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e) {
+            System.out.println("\n\n\n\n\n\n\n" + e.getMessage());
+            return 0;
+        }
+    }
 }

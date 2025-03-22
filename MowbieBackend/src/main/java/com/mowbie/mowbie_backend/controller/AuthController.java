@@ -105,7 +105,7 @@ public class AuthController {
         }
 
         String email = jwtUtil.extractEmail(refreshToken);
-        String newAccessToken = jwtUtil.generateToken(email, 15 * 60 * 1000); // 15 phút
+        String newAccessToken = jwtUtil.generateToken(email, 15 * 60 * 1000);
         UserDTO user = UserRepository.getUserByEmailOrId(email, null);
 
         if (user == null) {

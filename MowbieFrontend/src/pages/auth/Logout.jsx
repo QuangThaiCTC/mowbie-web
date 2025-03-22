@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Logout = () => {
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        const response = await axios.post(
-          "http://192.168.10.1:8081/api/auth/logout",
-          null,
-          { withCredentials: true }
-        );
+        const response = await axios.post(`${API_URL}/auth/logout`, null, {
+          withCredentials: true,
+        });
 
         if (response.status === 200) {
           localStorage.clear();
-          navigate("/home");
+          navigate('/home');
         }
       } catch (error) {
         alert(
-          error.response?.data?.message || "Có lỗi xảy ra, vui lòng đăng nhập."
+          error.response?.data?.message || 'Có lỗi xảy ra, vui lòng đăng nhập.'
         );
         localStorage.clear();
-        navigate("/auth");
+        navigate('/auth');
       } finally {
         setLoading(false);
       }

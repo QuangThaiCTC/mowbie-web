@@ -1,17 +1,19 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import ErrorAlert from "../../components/common/ErrorAlert";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ErrorAlert from '../../components/common/ErrorAlert';
 
 const Register = () => {
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [formData, setFormData] = useState({
-    email: "",
-    username: "",
-    phone_number: "",
-    password: "",
-    confirm_password: "",
+    email: '',
+    username: '',
+    phone_number: '',
+    password: '',
+    confirm_password: '',
   });
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -20,30 +22,29 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
-    if (Object.values(formData).some((value) => value.trim() === "")) {
-      setErrorMessage("Không được để trống!");
-      setTimeout(() => setErrorMessage(""), 3000);
+    if (Object.values(formData).some((value) => value.trim() === '')) {
+      setErrorMessage('Không được để trống!');
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://192.168.10.1:8081/api/auth/register",
-        null,
-        { params: formData, withCredentials: true }
-      );
+      const response = await axios.post(`${API_URL}/auth/register`, null, {
+        params: formData,
+        withCredentials: true,
+      });
 
       if (response.status !== 200) {
         setErrorMessage(response?.data?.message);
       }
 
-      navigate("/login");
+      navigate('/login');
     } catch (error) {
       setErrorMessage(error.response?.data?.message);
     } finally {
       setLoading(false);
-      setTimeout(() => setErrorMessage(""), 3000);
+      setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
@@ -125,14 +126,14 @@ const Register = () => {
           <div className="flex flex-col items-center justify-center">
             <button
               onClick={handleRegister}
-              className={`btn btn-primary w-full ${loading && "btn-disabled"}`}
+              className={`btn btn-primary w-full ${loading && 'btn-disabled'}`}
             >
-              {loading ? "Đang đăng ký..." : "Đăng ký"}
+              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
             </button>
           </div>
 
           <p className="text-center text-sm text-base-500 mt-3">
-            Bạn đã có tài khoản?{" "}
+            Bạn đã có tài khoản?{' '}
             <Link to="/login" className="text-base text-sm underline">
               Đăng nhập ngay
             </Link>

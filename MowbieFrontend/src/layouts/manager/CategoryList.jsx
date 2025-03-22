@@ -1,39 +1,39 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMagnifyingGlass,
   faSortUp,
   faSortDown,
   faPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import NotFoundItem from "../../components/common/NotFoundItem";
-import CategoryItem from "../../components/manager/CategoryItem";
-import { createPortal } from "react-dom";
+} from '@fortawesome/free-solid-svg-icons';
+import NotFoundItem from '../../components/common/NotFoundItem';
+import CategoryItem from '../../components/manager/CategoryItem';
+import { createPortal } from 'react-dom';
 
 const CategoryList = () => {
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isAdding, setIsAdding] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState('');
   const categoriesPerPage = 10;
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(
-          "http://192.168.10.1:8081/api/categories"
-        );
+        const response = await axios.get(`${API_URL}/categories`);
         if (response.status === 200) {
           setCategories(response.data.data.categories);
           setFilteredCategories(response.data.data.categories);
         }
       } catch (error) {
-        console.error("Lỗi khi tải danh mục:", error);
+        console.error('Lỗi khi tải danh mục:', error);
       } finally {
         setLoading(false);
       }
@@ -47,27 +47,33 @@ const CategoryList = () => {
     if (!newCategoryName.trim()) return;
 
     try {
-      const response = await axios.post(
-        "http://192.168.10.1:8081/api/categories",
-        null,
-        { params: { categoryName: newCategoryName } }
-      );
+      const accessToken = localStorage.getItem('access_token');
+
+      const response = await axios.post(`${API_URL}/categories`, null, {
+        params: { categoryName: newCategoryName },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Truyền token vào headers
+        },
+      });
 
       if (response.status === 200) {
         // Fetch lại danh sách mới thay vì chỉ thêm 1 item
-        const fetchResponse = await axios.get(
-          "http://192.168.10.1:8081/api/categories"
-        );
+        const fetchResponse = await axios.get(`${API_URL}/categories`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
         if (fetchResponse.status === 200) {
           setCategories(fetchResponse.data.data.categories);
           setFilteredCategories(fetchResponse.data.data.categories);
         }
 
         setIsAdding(false);
-        setNewCategoryName("");
+        setNewCategoryName('');
       }
     } catch (error) {
-      console.error("Lỗi khi thêm danh mục:", error);
+      console.error('Lỗi khi thêm danh mục:', error);
       setIsAdding(false);
     }
   };
@@ -104,7 +110,7 @@ const CategoryList = () => {
     const keyword = e.target.value.toLowerCase();
     setSearchTerm(keyword);
     setFilteredCategories(
-      keyword === ""
+      keyword === ''
         ? categories
         : categories.filter((cate) =>
             cate.categoryName.toLowerCase().includes(keyword)
@@ -115,20 +121,20 @@ const CategoryList = () => {
 
   // Xử lý sắp xếp
   const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
     setSortConfig({ key, direction });
 
     setFilteredCategories((prev) =>
       [...prev].sort((a, b) =>
         a[key] < b[key]
-          ? direction === "asc"
+          ? direction === 'asc'
             ? -1
             : 1
           : a[key] > b[key]
-          ? direction === "asc"
+          ? direction === 'asc'
             ? 1
             : -1
           : 0
@@ -176,13 +182,13 @@ const CategoryList = () => {
               <tr>
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort("categoryName")}
+                  onClick={() => handleSort('categoryName')}
                 >
-                  Tên danh mục{" "}
-                  {sortConfig.key === "categoryName" && (
+                  Tên danh mục{' '}
+                  {sortConfig.key === 'categoryName' && (
                     <FontAwesomeIcon
                       icon={
-                        sortConfig.direction === "asc" ? faSortUp : faSortDown
+                        sortConfig.direction === 'asc' ? faSortUp : faSortDown
                       }
                     />
                   )}
@@ -203,7 +209,7 @@ const CategoryList = () => {
               ) : (
                 <tr>
                   <td colSpan={3}>
-                    <NotFoundItem message={"Không tìm thấy danh mục"} />
+                    <NotFoundItem message={'Không tìm thấy danh mục'} />
                   </td>
                 </tr>
               )}

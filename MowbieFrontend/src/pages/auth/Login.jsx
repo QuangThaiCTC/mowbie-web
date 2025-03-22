@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import ErrorAlert from "../../components/common/ErrorAlert";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ErrorAlert from '../../components/common/ErrorAlert';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [errorMessage, setErrorMessage] = useState("");
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -15,41 +17,37 @@ const Login = () => {
 
   const getAvatarUrl = (avatarPath) => {
     if (!avatarPath) {
-      return "http://192.168.10.1:8081/uploads/users/default.png";
+      return `${API_URL}/uploads/users/default.png`;
     }
-    return `http://192.168.10.1:8081/api/${avatarPath}`;
+    return `${API_URL}/${avatarPath}`;
   };
 
   const handleLogin = async () => {
     if (!formData.email.trim() || !formData.password.trim()) {
-      setErrorMessage("Không được để trống!");
-      setTimeout(() => setErrorMessage(""), 3000);
+      setErrorMessage('Không được để trống!');
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://192.168.10.1:8081/api/auth/login",
-        null,
-        {
-          params: formData,
-          withCredentials: true,
-        }
-      );
+      const response = await axios.post(`${API_URL}/auth/login`, null, {
+        params: formData,
+        withCredentials: true,
+      });
 
       if (response.status === 200) {
         const { access_token, user } = response.data.data;
 
         // Lưu thông tin vào localStorage
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('user', JSON.stringify(user));
 
         const avatarUrl = getAvatarUrl(response.data.data.user.avatarPath);
-        localStorage.setItem("avatar", avatarUrl);
+        localStorage.setItem('avatar', avatarUrl);
 
         // Điều hướng theo vai trò user
-        navigate(user.userRole === "manager" ? "/dashboard" : "/home");
+        navigate(user.userRole === 'manager' ? '/dashboard' : '/home');
       }
 
       if (
@@ -61,10 +59,10 @@ const Login = () => {
         localStorage.clear();
       }
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "Lỗi hệ thống!");
+      setErrorMessage(error.response?.data?.message || 'Lỗi hệ thống!');
     } finally {
       setLoading(false);
-      setTimeout(() => setErrorMessage(""), 3000);
+      setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
@@ -105,17 +103,17 @@ const Login = () => {
           <div className="flex flex-col items-center justify-center">
             <button
               onClick={handleLogin}
-              className={`btn btn-primary w-full ${loading && "btn-disabled"}`}
+              className={`btn btn-primary w-full ${loading && 'btn-disabled'}`}
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
           </div>
 
           <p className="text-center text-sm text-base-500 mt-3">
-            Bạn chưa có tài khoản?{" "}
+            Bạn chưa có tài khoản?{' '}
             <Link to="/register" className="text-base text-sm underline">
               Đăng ký ngay
-            </Link>{" "}
+            </Link>{' '}
             <br />
             <Link to="/home" className="text-base text-sm underline">
               Tiếp tục với tư cách khách

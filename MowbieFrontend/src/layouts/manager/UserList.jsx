@@ -1,35 +1,43 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMagnifyingGlass,
   faSortUp,
   faSortDown,
-} from "@fortawesome/free-solid-svg-icons";
-import UserItem from "../../components/manager/UserItem";
-import NotFoundItem from "../../components/common/NotFoundItem";
+} from '@fortawesome/free-solid-svg-icons';
+import UserItem from '../../components/manager/UserItem';
+import NotFoundItem from '../../components/common/NotFoundItem';
 
 const UserList = () => {
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const usersPerPage = 10;
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://192.168.10.1:8081/api/users");
+        const accessToken = localStorage.getItem('access_token'); // Lấy token từ localStorage
+        const response = await axios.get(`${API_URL}/users`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+          },
+        });
+
         if (response.status === 200) {
           const fetchedUsers = response.data.data.users;
-          localStorage.setItem("users", JSON.stringify(fetchedUsers));
+          localStorage.setItem('users', JSON.stringify(fetchedUsers));
           setUsers(fetchedUsers);
           setFilteredUsers(fetchedUsers);
         }
       } catch (error) {
-        console.error("Lỗi khi tải danh sách người dùng:", error);
+        console.error('Lỗi khi tải danh sách người dùng:', error);
       } finally {
         setLoading(false);
       }
@@ -43,7 +51,7 @@ const UserList = () => {
     const keyword = e.target.value.toLowerCase();
     setSearchTerm(keyword);
 
-    if (keyword === "") {
+    if (keyword === '') {
       setFilteredUsers(users);
     } else {
       const filtered = users.filter(
@@ -60,14 +68,14 @@ const UserList = () => {
 
   // Xử lý sắp xếp
   const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
 
     const sortedUsers = [...filteredUsers].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
       return 0;
     });
 
@@ -106,11 +114,11 @@ const UserList = () => {
                 {/* Họ và tên */}
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort("username")}
+                  onClick={() => handleSort('username')}
                 >
-                  Họ và tên{" "}
-                  {sortConfig.key === "username" &&
-                    (sortConfig.direction === "asc" ? (
+                  Họ và tên{' '}
+                  {sortConfig.key === 'username' &&
+                    (sortConfig.direction === 'asc' ? (
                       <FontAwesomeIcon icon={faSortUp} />
                     ) : (
                       <FontAwesomeIcon icon={faSortDown} />
@@ -120,11 +128,11 @@ const UserList = () => {
                 {/* Email */}
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort("email")}
+                  onClick={() => handleSort('email')}
                 >
-                  Email{" "}
-                  {sortConfig.key === "email" &&
-                    (sortConfig.direction === "asc" ? (
+                  Email{' '}
+                  {sortConfig.key === 'email' &&
+                    (sortConfig.direction === 'asc' ? (
                       <FontAwesomeIcon icon={faSortUp} />
                     ) : (
                       <FontAwesomeIcon icon={faSortDown} />
@@ -134,11 +142,11 @@ const UserList = () => {
                 {/* Số điện thoại */}
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort("phoneNumber")}
+                  onClick={() => handleSort('phoneNumber')}
                 >
-                  Số điện thoại{" "}
-                  {sortConfig.key === "phoneNumber" &&
-                    (sortConfig.direction === "asc" ? (
+                  Số điện thoại{' '}
+                  {sortConfig.key === 'phoneNumber' &&
+                    (sortConfig.direction === 'asc' ? (
                       <FontAwesomeIcon icon={faSortUp} />
                     ) : (
                       <FontAwesomeIcon icon={faSortDown} />
@@ -148,11 +156,11 @@ const UserList = () => {
                 {/* Vai trò */}
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort("userRole")}
+                  onClick={() => handleSort('userRole')}
                 >
-                  Vai trò{" "}
-                  {sortConfig.key === "userRole" &&
-                    (sortConfig.direction === "asc" ? (
+                  Vai trò{' '}
+                  {sortConfig.key === 'userRole' &&
+                    (sortConfig.direction === 'asc' ? (
                       <FontAwesomeIcon icon={faSortUp} />
                     ) : (
                       <FontAwesomeIcon icon={faSortDown} />
@@ -171,7 +179,7 @@ const UserList = () => {
               ) : (
                 <tr>
                   <td colSpan={5}>
-                    <NotFoundItem message={"Không tìm thấy người dùng"} />
+                    <NotFoundItem message={'Không tìm thấy người dùng'} />
                   </td>
                 </tr>
               )}

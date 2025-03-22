@@ -4,6 +4,7 @@ import com.mowbie.mowbie_backend.dto.ResponseDTO;
 import com.mowbie.mowbie_backend.dto.UserDTO;
 import com.mowbie.mowbie_backend.model.User;
 import com.mowbie.mowbie_backend.repository.UserRepository;
+import com.mowbie.mowbie_backend.security.Authorization;
 import com.mowbie.mowbie_backend.security.Regex;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -30,9 +31,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 public class UserController {
     private static final String UPLOAD_DIR = "uploads/users/";
+    private final Authorization auth = new Authorization();
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        ResponseEntity<?> authResponse = auth.authorize(authHeader, "manager");
+        if (authResponse != null) {
+            return authResponse;
+        }
+
         List<UserDTO> users = UserRepository.getAllUsers();
         if (users.isEmpty()) {
             return ResponseEntity.status(401)
@@ -43,9 +50,9 @@ public class UserController {
         )));
     }
 
-    @PutMapping("/update")
+    @PutMapping("/{userId}")
     public ResponseEntity<?> updateUser(
-            @RequestParam Long userId,
+            @PathVariable Long userId,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String newPassword,
@@ -88,7 +95,9 @@ public class UserController {
     }
 
     @PutMapping("/status")
-    public ResponseEntity<?> updateUserStatus(@RequestParam Long userId, @RequestParam Boolean status) {
+    public ResponseEntity<?> updateUserStatus(@RequestHeader(value = "Authorization", required = false) String authHeader,
+                                              @RequestParam Long userId,
+                                              @RequestParam Boolean status) {
         int result = UserRepository.updateUserStatusById(userId, status);
         if (result == 1) {
             return ResponseEntity.ok(ResponseDTO.success("Tài khoản đã được mở khóa thành công!", null));

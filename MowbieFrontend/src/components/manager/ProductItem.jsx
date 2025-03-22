@@ -1,25 +1,24 @@
-import { useState, useEffect } from "react";
-import ProductDetailItem from "./ProductDetailItem";
+import { useState, useEffect } from 'react';
+import ProductDetailItem from './ProductDetailItem';
 
 const ProductItem = ({ product }) => {
-  const defaultImage =
-    "http://192.168.10.1:8081/api/uploads/products/no-pictures.png";
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const defaultImage = `${API_URL}/uploads/products/no-pictures.png`;
   const [imagePath, setImagePath] = useState(
-    product.productImage
-      ? "http://192.168.10.1:8081/api/" + product.productImage
-      : defaultImage
+    product.productImage ? `${API_URL}/` + product.productImage : defaultImage
   );
   const [productDetail, setProductDetail] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const onClickProductDetail = async () => {
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
-      const response = await fetch("/productDetail.json");
-      if (!response.ok) throw new Error("Lỗi khi tải dữ liệu!");
+      const response = await fetch('/productDetail.json');
+      if (!response.ok) throw new Error('Lỗi khi tải dữ liệu!');
 
       const data = await response.json();
       setProductDetail(data.productDetail);
@@ -32,7 +31,7 @@ const ProductItem = ({ product }) => {
 
   useEffect(() => {
     if (productDetail) {
-      document.getElementById("productDetail").showModal();
+      document.getElementById('productDetail').showModal();
     }
   }, [productDetail]);
 
@@ -53,7 +52,7 @@ const ProductItem = ({ product }) => {
           onClick={onClickProductDetail}
           disabled={loading}
         >
-          {loading ? "Đang tải..." : "Chi tiết"}
+          {loading ? 'Đang tải...' : 'Chi tiết'}
         </button>
       </td>
       {productDetail && (
